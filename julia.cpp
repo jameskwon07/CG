@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <math.h>
 
-const static int max_iteration = 8;
 //==============================================================================
 class Complex
 //==============================================================================
@@ -57,6 +56,9 @@ Extent world(-1,1,-1,1);
 Complex c(0.109, 0.603);
 int width = 512, height = 512;
 bool doJuliaSet = true;
+
+const static int max_iteration = 256;
+const static float delta = (world.r - world.l) / width;
 
 //------------------------------------------------------------------------------
 int main( int argc, char* argv[] )
@@ -120,7 +122,6 @@ void display()
   glLoadIdentity();
 
   // loop over the pixels on the screen
-  float delta = (world.r - world.l)/float(width);
   for( int j=0; j < height; j++ )
   {      
       for( int i=0; i < width; i++ )
@@ -243,8 +244,8 @@ void mouse( int button, int state, int mx, int my )
 //------------------------------------------------------------------------------
 void reshape( int w, int h)
 {
-//  width = w;
-//  height = h;
+  width = w;
+  height = h;
   glViewport(0, 0, w, h);
 
  
