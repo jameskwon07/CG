@@ -10,8 +10,10 @@
 #include <GLUT/glut.h>
 #endif
 
+#include <stdio.h>
 #include <math.h>
 
+const static int max_iteration = 8;
 //==============================================================================
 class Complex
 //==============================================================================
@@ -76,7 +78,7 @@ int main( int argc, char* argv[] )
 void julia( Complex p, Complex c, int& i, float& r )
 {
   float rSqr;
-  int maxIterations = 256;
+  int maxIterations = max_iteration;
   for( i=0; i < maxIterations; i++ )
   {
     p = p*p + c;
@@ -91,7 +93,7 @@ void julia( Complex p, Complex c, int& i, float& r )
 void mandelbrot( Complex c, int& i, float& r )
 {
   float rSqr;
-  int maxIterations = 256;
+  int maxIterations = max_iteration;
   Complex p(0,0);
   for( i=0; i < maxIterations; i++ )
   {
@@ -137,7 +139,7 @@ void display()
           mandelbrot( p, its, R );
 
         // turn iterations and radius to color
-        if( its == 256 )
+        if( its == max_iteration )
           glColor3d(0,0,0);
         else
         {
@@ -241,14 +243,13 @@ void mouse( int button, int state, int mx, int my )
 //------------------------------------------------------------------------------
 void reshape( int w, int h)
 {
-  width = w;
-  height = h;
-  glViewport(0, 0, w, h );
+//  width = w;
+//  height = h;
+  glViewport(0, 0, w, h);
 
  
-  float cx = 0.5*(world.r + world.l);
-  float dy = world.t - world.b;;
-  world.l = cx - 0.5*dy * w/h;
-  world.r = cx + 0.5*dy * w/h;
- 
- }
+//  float cx = 0.5*(world.r + world.l);
+//  float dy = world.t - world.b;;
+//  world.l = cx - 0.5*dy * w/h;
+//  world.r = cx + 0.5*dy * w/h;
+}
