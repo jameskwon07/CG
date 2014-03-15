@@ -13,12 +13,6 @@
 #include <stdio.h>
 #include <math.h>
 
-enum SCALE_STATE
-{
-	kScaleToFill,
-	kScaleToFit
-};
-
 //==============================================================================
 class Complex
 //==============================================================================
@@ -63,8 +57,7 @@ Complex c(0.109, 0.603);
 int width = 512, height = 512;
 bool doJuliaSet = true;
 
-SCALE_STATE state = kScaleToFit;
-const static int max_iteration = 8;
+const static int max_iteration = 256;
 const static float delta = (world.r - world.l) / width;
 
 //------------------------------------------------------------------------------
@@ -169,13 +162,6 @@ void display()
   }  
 }
 
-void change_current_state()
-{
-	if( state == kScaleToFit )
-		state = kScaleToFill;
-	else if( state == kScaleToFill )
-		state = kScaleToFit;
-}
 
 //-----------------------------------------------------------------------------
 void keyboard(unsigned char key, int x, int y)
@@ -215,11 +201,6 @@ void keyboard(unsigned char key, int x, int y)
     doJuliaSet = !doJuliaSet;
     display();
   }
-	else if( ( key == 's' ) || ( key == 'S' ) )
-	{
-		change_current_state();
-		display();
-	}
 }
 
 //------------------------------------------------------------------------------
@@ -266,13 +247,10 @@ void reshape( int w, int h)
   width = w;
   height = h;
   glViewport(0, 0, w, h);
- 
-	if( state == kScaleToFit )
-	{
-    float cx = 0.5*(world.r + world.l);
-    float dy = world.t - world.b;
-    world.l = cx - 0.5*dy * w/h;
-    world.r = cx + 0.5*dy * w/h;
-	}
-}
 
+ 
+//  float cx = 0.5*(world.r + world.l);
+//  float dy = world.t - world.b;;
+//  world.l = cx - 0.5*dy * w/h;
+//  world.r = cx + 0.5*dy * w/h;
+}
