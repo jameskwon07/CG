@@ -248,7 +248,7 @@ void reshape( int w, int h)
   height = h;
   glViewport(0, 0, w, h);
 
- 
+// Fig. 3 구현을 위해서 주석처리 
 //  float cx = 0.5*(world.r + world.l);
 //  float dy = world.t - world.b;;
 //  world.l = cx - 0.5*dy * w/h;
