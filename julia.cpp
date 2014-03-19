@@ -54,10 +54,12 @@ void idle();
 
 Extent world(-1,1,-1,1);
 Complex c(0.109, 0.603);
-int width = 512, height = 512;
+const static int width = 512, height = 512;
+int current_width = 0;
+int current_height = 0;
 bool doJuliaSet = true;
 
-const static int max_iteration = 256;
+const static int max_iteration = 8;
 const static float delta = (world.r - world.l) / width;
 
 //------------------------------------------------------------------------------
@@ -86,7 +88,9 @@ void julia( Complex p, Complex c, int& i, float& r )
     p = p*p + c;
     rSqr = p.re*p.re + p.im*p.im;
     if( rSqr > 4 )
+		{
       break;
+		}
   }
   r = sqrt(rSqr);
 }
@@ -128,7 +132,7 @@ void display()
       {
         // convert pixel location to world coordinates
         float x = world.l + i*delta;
-        float y = world.b + j*delta;      
+        float y = world.b + j*delta;
         
         // test for convergence
         int its;
@@ -206,13 +210,13 @@ void keyboard(unsigned char key, int x, int y)
 //------------------------------------------------------------------------------
 float xScreenToWorld(float scrX)
 {
-  return ((world.r - world.l) * scrX / float(width)) + world.l;
+  return ((world.r - world.l) * scrX / float(current_width)) + world.l;
 }
 
 //------------------------------------------------------------------------------
 float yScreenToWorld(float scrY)
 {
-  return ((world.t - world.b) * (1 - scrY / float(height))) + world.b;
+  return ((world.t - world.b) * (1 - scrY / float(current_height))) + world.b;
 }
 
 
@@ -244,8 +248,8 @@ void mouse( int button, int state, int mx, int my )
 //------------------------------------------------------------------------------
 void reshape( int w, int h)
 {
-  width = w;
-  height = h;
+  current_width = w;
+  current_height = h;
   glViewport(0, 0, w, h);
 
 // Fig. 3 구현을 위해서 주석처리 
