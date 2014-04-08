@@ -126,6 +126,7 @@ void display()
   glLoadIdentity();
 
   // loop over the pixels on the screen
+	float delta = (world.r - world.l) / width;
   for( int j=0; j < height; j++ )
   {      
       for( int i=0; i < width; i++ )
