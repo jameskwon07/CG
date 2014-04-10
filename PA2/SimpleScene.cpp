@@ -95,7 +95,7 @@ void setCamera()
 	if (frame == 0)
 	{
 		// intialize camera model.
-		cam = new WaveFrontOBJ("../camera.obj");	// Read information of camera from camera.obj.
+		cam = new WaveFrontOBJ("camera.obj");	// Read information of camera from camera.obj.
 		camID = glGenLists(1);					// Create display list of the camera.
 		glNewList(camID, GL_COMPILE);			// Begin compiling the display list using camID.
 		cam->Draw();							// Draw the camera. you can do this job again through camID..
@@ -203,7 +203,7 @@ void drawCow()
 		// Initialization part.
 
 		// Read information from cow.obj.
-		cow = new WaveFrontOBJ( "../cow.obj" );
+		cow = new WaveFrontOBJ( "cow.obj" );
 
 		// Make display list. After this, you can draw cow using 'cowID'.
 		cowID = glGenLists(1);				// Create display lists
@@ -281,7 +281,7 @@ void drawBet()
 		// Initialization part.
 
 		// Read information from beethovan.obj.
-		bet = new WaveFrontOBJ( "../beethovan.obj" );
+		bet = new WaveFrontOBJ( "beethovan.obj" );
 
 		// Make display list. After this, you can draw beethovan using 'betID'.
 		betID = glGenLists(1);
