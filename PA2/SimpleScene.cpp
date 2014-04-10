@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 #include <sys/types.h>
 
 #include <iostream>
@@ -71,7 +70,9 @@ enum AxisTranslation
 };
 
 AxisTranslation axis = kNone;
-double delta = 0;
+double deltaX = 0;
+double deltaY = 0;
+double deltaZ = 0;
 
 void drawFrame(float len);
 
@@ -225,26 +226,7 @@ void drawCow()
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixd(cow2wld.matrix());
 
-	switch(axis)
-	{
-		case kXAxis:
-		{
-			glTranslated(delta, 0, 0);
-			break;
-		}
-		case kYAxis:
-		{
-			glTranslated(0, delta, 0);
-			break;
-		}
-		case kZAxis:
-		{
-			glTranslated(0, 0, delta);
-			break;
-		}
-		default:
-			break;
-	}
+	glTranslated(deltaX, deltaY, deltaZ);
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
@@ -535,11 +517,29 @@ void onMouseDrag(int x, int y)
 {
 	y = height - y - 1;
 
-	double deltaX = x - oldX;
-	double deltaY = y - oldY;
-	printf( "in drag (%d, %d)\n", deltaX, deltaY);
-
-	delta = deltaX / 10.0;
+	switch(axis)
+	{
+		case kXAxis:
+		{
+			deltaX = (x - oldX) / 10.0;
+			break;
+		}
+		case kYAxis:
+		{
+			deltaY = (x - oldX) / 10.0;
+			break;
+		}
+		case kZAxis:
+		{
+			deltaZ = (x - oldX) / 10.0;
+			break;
+		}
+		default:
+		{
+			printf("Axis is not selected");	
+			break;
+		}
+	}
 
 	// (Project 2,3,4) TODO : Implement here to perform properly when drag the mouse on each cases resp.
 
