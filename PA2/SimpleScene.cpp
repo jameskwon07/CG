@@ -96,7 +96,7 @@ void setCamera()
 	if (frame == 0)
 	{
 		// intialize camera model.
-		cam = new WaveFrontOBJ("../camera.obj");	// Read information of camera from camera.obj.
+		cam = new WaveFrontOBJ("camera.obj");	// Read information of camera from camera.obj.
 		camID = glGenLists(1);					// Create display list of the camera.
 		glNewList(camID, GL_COMPILE);			// Begin compiling the display list using camID.
 		cam->Draw();							// Draw the camera. you can do this job again through camID..
@@ -204,7 +204,7 @@ void drawCow()
 		// Initialization part.
 
 		// Read information from cow.obj.
-		cow = new WaveFrontOBJ( "../cow.obj" );
+		cow = new WaveFrontOBJ( "cow.obj" );
 
 		// Make display list. After this, you can draw cow using 'cowID'.
 		cowID = glGenLists(1);				// Create display lists
@@ -224,6 +224,27 @@ void drawCow()
 	// The information about location of cow to be drawn is stored in cow2wld matrix.
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixd(cow2wld.matrix());
+
+	switch(axis)
+	{
+		case kXAxis:
+		{
+			glTranslated(delta, 0, 0);
+			break;
+		}
+		case kYAxis:
+		{
+			glTranslated(0, delta, 0);
+			break;
+		}
+		case kZAxis:
+		{
+			glTranslated(0, 0, delta);
+			break;
+		}
+		default:
+			break;
+	}
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
@@ -247,27 +268,6 @@ void drawCow()
 		glRotated(spin, rotateX, rotateY, rotateZ);
 	}
 
-	switch(axis)
-	{
-		case kXAxis:
-		{
-			glTranslated(delta, 0, 0);
-			break;
-		}
-		case kYAxis:
-		{
-			glTranslated(0, delta, 0);
-			break;
-		}
-		case kZAxis:
-		{
-			glTranslated(0, 0, delta);
-			break;
-		}
-		default:
-			break;
-	}
-
 	glCallList(cowID);		// Draw cow. 
 	glPopMatrix();			// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
 }
@@ -282,7 +282,7 @@ void drawBet()
 		// Initialization part.
 
 		// Read information from beethovan.obj.
-		bet = new WaveFrontOBJ( "../beethovan.obj" );
+		bet = new WaveFrontOBJ( "beethovan.obj" );
 
 		// Make display list. After this, you can draw beethovan using 'betID'.
 		betID = glGenLists(1);
