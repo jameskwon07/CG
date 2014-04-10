@@ -11,7 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\julia.cpp" />
+    <ClCompile Include="..\SimpleScene.cpp" />
+    <ClCompile Include="..\WaveFrontOBJ.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\FrameXform.h" />
+    <ClInclude Include="..\WaveFrontOBJ.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{09CFBA2D-116C-4239-A0EA-4B1ACAE1B76B}</ProjectGuid>
@@ -55,7 +60,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)/..</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
