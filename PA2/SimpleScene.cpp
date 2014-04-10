@@ -64,10 +64,10 @@ double spin = 0;
 // Variables for translation
 enum AxisTranslation
 {
-	kNone,
-	kXAxis,
-	kYAxis,
-	kZAxis
+	kNone /* 이동이 되지 않는 상태*/,
+	kXAxis /* X축으로 이동을 하는 상태*/,
+	kYAxis /* Y축으로 이동을 하는 상태*/,
+	kZAxis /* Z축으로 이동ㅇ르 하는 상태*/
 };
 
 AxisTranslation axis = kNone;
@@ -152,6 +152,7 @@ void setCamera()
 	}
 }
 
+// Idle rotation Animation Function
 void rotationDisplay()
 {
 	spin = (spin + 1.0);
@@ -227,7 +228,7 @@ void drawCow()
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixd(cow2wld.matrix());
 
-	glTranslated(deltaX, deltaY, deltaZ);
+	glTranslated(deltaX, deltaY, deltaZ); // To move the cow model.
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
@@ -245,6 +246,7 @@ void drawCow()
 		glColor3d(r, g, b);									
 	}
 
+	// If rotation animation is enabled, draw axis and rotate the cow
 	if (isRotation)
 	{
 		drawAxisOfRotation(5);
@@ -566,6 +568,8 @@ void onKeyPress( unsigned char key, int x, int y)
 	{
 		cameraIndex = key - '0';
 	}
+	// If 'r' or 'R' are pressed, toggle isRotation variable.
+	// If isRotation is true, it makes randomly axis of rotation.
 	else if ((key == 'r') || (key == 'R'))
 	{
 		isRotation = !isRotation;
@@ -588,16 +592,20 @@ void onKeyPress( unsigned char key, int x, int y)
 			return;
 		}
 	}
+	// If 'x' or 'y' or 'z' are pressed, it changes axis of translation.
+	// If 'x' is pressed, it makes x axis become axis of translation
 	else if ((key == 'x') || (key == 'X'))
 	{
 		axis = kXAxis;
 		return;
 	}
+	// If 'y' is pressed, it makes y axis become axis of translation
 	else if ((key == 'y') || (key == 'Y'))
 	{
 		axis = kYAxis;
 		return;
 	}
+	// If 'z' is pressed, it makes z axis become axis of translation
 	else if ((key == 'z') || (key == 'Z'))
 	{
 		axis = kZAxis;
