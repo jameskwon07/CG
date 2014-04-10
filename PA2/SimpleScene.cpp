@@ -224,6 +224,27 @@ void drawCow()
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixd(cow2wld.matrix());
 
+	switch(axis)
+	{
+		case kXAxis:
+		{
+			glTranslated(delta, 0, 0);
+			break;
+		}
+		case kYAxis:
+		{
+			glTranslated(0, delta, 0);
+			break;
+		}
+		case kZAxis:
+		{
+			glTranslated(0, 0, delta);
+			break;
+		}
+		default:
+			break;
+	}
+
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawFrame(5);										// Draw x, y, and z axis.
@@ -244,27 +265,6 @@ void drawCow()
 	{
 		drawAxisOfRotation(5);
 		glRotated(spin, rotateX, rotateY, rotateZ);
-	}
-
-	switch(axis)
-	{
-		case kXAxis:
-		{
-			glTranslated(delta, 0, 0);
-			break;
-		}
-		case kYAxis:
-		{
-			glTranslated(0, delta, 0);
-			break;
-		}
-		case kZAxis:
-		{
-			glTranslated(0, 0, delta);
-			break;
-		}
-		default:
-			break;
 	}
 
 	glCallList(cowID);		// Draw cow. 
