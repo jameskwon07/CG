@@ -232,24 +232,10 @@ void drawCow()
 
 	glPushMatrix();		// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
 
+	glTranslated(deltaX, deltaY, deltaZ); // To move the cow model.
 	// The information about location of cow to be drawn is stored in cow2wld matrix.
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
-	if (space == kModel)
-	{
-		glMultMatrixd(cow2wld.matrix());
-		glTranslated(deltaX, deltaY, deltaZ); // To move the cow model.
-	
-		// If rotation animation is enabled, draw axis and rotate the cow
-  	if (isRotation)
-  	{
-  		drawAxisOfRotation(5);
-  		glRotated(spin, rotateX, rotateY, rotateZ);
-  	}
-	}
-	else if (space == kView)
-	{
-		glMultMatrixd(wld2cam[cameraIndex].matrix());
-	}
+	glMultMatrixd(cow2wld.matrix());
 
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
