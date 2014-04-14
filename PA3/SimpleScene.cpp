@@ -75,6 +75,14 @@ double deltaX = 0;
 double deltaY = 0;
 double deltaZ = 0;
 
+// Variables for view, model changing
+enum TransformationSpace
+{
+	kModel,
+	kView
+};
+TransformationSpace space = kModel;
+
 void drawFrame(float len);
 
 //------------------------------------------------------------------------------
@@ -226,10 +234,23 @@ void drawCow()
 
 	// The information about location of cow to be drawn is stored in cow2wld matrix.
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
-//	glMultMatrixd(cow2wld.matrix());
-	glMultMatrixd(wld2cam[cameraIndex].matrix());
+	if (space == kModel)
+	{
+		glMultMatrixd(cow2wld.matrix());
+		glTranslated(deltaX, deltaY, deltaZ); // To move the cow model.
+	
+		// If rotation animation is enabled, draw axis and rotate the cow
+  	if (isRotation)
+  	{
+  		drawAxisOfRotation(5);
+  		glRotated(spin, rotateX, rotateY, rotateZ);
+  	}
+	}
+	else if (space == kView)
+	{
+		glMultMatrixd(wld2cam[cameraIndex].matrix());
+	}
 
-	glTranslated(deltaX, deltaY, deltaZ); // To move the cow model.
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
@@ -245,13 +266,6 @@ void drawCow()
 		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
 		munge(32, r,g,b );									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
 		glColor3d(r, g, b);									
-	}
-
-	// If rotation animation is enabled, draw axis and rotate the cow
-	if (isRotation)
-	{
-		drawAxisOfRotation(5);
-		glRotated(spin, rotateX, rotateY, rotateZ);
 	}
 
 	glCallList(cowID);		// Draw cow. 
@@ -589,6 +603,14 @@ void onKeyPress( unsigned char key, int x, int y)
 			glutIdleFunc(NULL);
 			return;
 		}
+	}
+	else if ((key == 'm') || (key == 'M'))
+	{
+		space = kModel;
+	}
+	else if ((key == 'v') || (key == 'V'))
+	{
+		space = kView;
 	}
 	// If 'x' or 'y' or 'z' are pressed, it changes axis of translation.
 	// If 'x' is pressed, it makes x axis become axis of translation
