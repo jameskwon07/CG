@@ -184,14 +184,13 @@ void rotationDisplay()
 
 void drawAxisOfRotation(float length)
 {
-	glPushMatrix();
+	printf("%f %f %f\n",rotateX, rotateY, rotateZ);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	glColor3d(1,1,1);
 	glVertex3d(length*rotateX,length*rotateY,length*rotateZ);			
 	glVertex3d(-length*rotateX,-length*rotateY,-length*rotateZ);			
 	glEnd();
-	glPopMatrix();
 
 	glEnable(GL_LIGHTING);
 }
@@ -246,12 +245,12 @@ void drawCow()
 
 // The information about location of cow to be drawn is stored in cow2wld matrix.
 // (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+
 	glMultMatrixd(cow2wld.matrix());
 
+
 	glMultMatrixd(wld2cam[cameraIndex].matrix());
-//	glTranslated(-deltaCameraX, deltaCameraY, -deltaCameraZ); // To move the cow model.
-//	drawAxisOfRotation(5);
-//	glRotated(spin, rotateX, rotateY, rotateZ);
+	glTranslated(-deltaCameraX, deltaCameraY, -deltaCameraZ); // To move the cow model.
 	glMultMatrixd(cam2wld[cameraIndex].matrix());
 
 	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
@@ -281,8 +280,12 @@ void drawCow()
 		}
 		else if (space == kView)
 		{
-// 			drawAxisOfRotation(5);
-			// glRotated(spin, 1, 0, 0);
+			glTranslated(cameras[cameraIndex][0],cameras[cameraIndex][1],cameras[cameraIndex][2]);
+			glMultMatrixd(wld2cam[cameraIndex].matrix());
+			drawAxisOfRotation(5);
+		 	glRotated(spin, rotateX, rotateY, rotateZ);
+//			glTranslated(-cameras[cameraIndex][0],-cameras[cameraIndex][1],-cameras[cameraIndex][2]);
+			glMultMatrixd(cam2wld[cameraIndex].matrix());
 		}
 	}
 
