@@ -236,21 +236,23 @@ void drawCow()
 		glEndList();						// Terminate compiling the display list. Now, you can draw cow using 'cowID'.
 		glPushMatrix();						// Push the current matrix of GL into stack.
 		glLoadIdentity();					// Set the GL matrix Identity matrix.
-		glTranslated(0,-cow->bbmin.y,-8);	// Set the location of cow.
-		glRotated(-90, 0, 1, 0);			// Set the direction of cow. These information are stored in the matrix of GL.
+//		glTranslated(0,-cow->bbmin.y,-8);	// Set the location of cow.
+//		glRotated(-90, 0, 1, 0);			// Set the direction of cow. These information are stored in the matrix of GL.
 		glGetDoublev(GL_MODELVIEW_MATRIX, cow2wld.matrix());	// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 		glPopMatrix();						// Pop the matrix on stack to GL.
 	}
 
-	glMultMatrixd(cam2wld[cameraIndex].matrix());
-	glTranslated(deltaCameraX, deltaCameraY, deltaCameraZ); // To move the cow model.
-	glMultMatrixd(wld2cam[cameraIndex].matrix());
-
 	glPushMatrix();		// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
 
-	// The information about location of cow to be drawn is stored in cow2wld matrix.
-	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+// The information about location of cow to be drawn is stored in cow2wld matrix.
+// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixd(cow2wld.matrix());
+
+	glMultMatrixd(wld2cam[cameraIndex].matrix());
+//	glTranslated(-deltaCameraX, deltaCameraY, -deltaCameraZ); // To move the cow model.
+//	drawAxisOfRotation(5);
+//	glRotated(spin, rotateX, rotateY, rotateZ);
+	glMultMatrixd(cam2wld[cameraIndex].matrix());
 
 	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
 
@@ -270,10 +272,18 @@ void drawCow()
 		glColor3d(r, g, b);									
 	}
 	
-	if (transformation_mode == kRotation && space == kModel)
+	if (transformation_mode == kRotation)
 	{
-		drawAxisOfRotation(5);
-		glRotated(spin, rotateX, rotateY, rotateZ);
+		if (space == kModel)
+		{
+			drawAxisOfRotation(5);
+			glRotated(spin, rotateX, rotateY, rotateZ);
+		}
+		else if (space == kView)
+		{
+// 			drawAxisOfRotation(5);
+			// glRotated(spin, 1, 0, 0);
+		}
 	}
 
 	glCallList(cowID);		// Draw cow. 
@@ -562,7 +572,6 @@ void onMouseDrag(int x, int y)
 			{
 				deltaCameraX = (x - oldX) / 10.0 + originCameraX;
 				deltaCameraY = (y - oldY) / 10.0 + originCameraY;
-				printf("X : %f %f\n", deltaCameraX, deltaCameraY);
 			}
 			else if (space == kModel)
 			{
@@ -577,7 +586,6 @@ void onMouseDrag(int x, int y)
 			{
 				deltaCameraX = (x - oldX) / 10.0 + originCameraX;
 				deltaCameraY = (y - oldY) / 10.0 + originCameraY;
-				printf("Y : %f %f\n", deltaCameraX, deltaCameraY);
 			}
 			else if (space == kModel)
 			{
@@ -596,6 +604,12 @@ void onMouseDrag(int x, int y)
 			{
 				deltaCameraZ = (x - oldX) / 10.0 + originModelZ;
 			}
+			break;
+		}
+		case kRotation:
+		{
+			if (space == kView)
+				spin = (x - oldX) / 10.0;
 			break;
 		}
 		case kNone:
@@ -643,6 +657,7 @@ void onKeyPress( unsigned char key, int x, int y)
 		}
 		else
 		{
+			transformation_mode = kRotation;
 			if (space == kModel)
 			{
   			srand(time(NULL));
@@ -651,13 +666,13 @@ void onKeyPress( unsigned char key, int x, int y)
     		rotateY = (rand() % 1000) / 1000.0;
     		rotateZ = (rand() % 1000) / 1000.0;
     		
-    		printf( "double value %f %f %f\n", rotateX, rotateY, rotateZ );
-    		
   			glutIdleFunc(rotationDisplay);
 			}
 			else if (space == kView)
 			{
-
+				rotateX = 1.0;
+				rotateY = 0;
+				rotateZ = 0;
 			}
 		}
 	}
