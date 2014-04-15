@@ -54,26 +54,38 @@ int frame = 0;
 int width, height;
 int selectMode, oldX, oldY;
 
+// For managing state
+enum TransformationMode
+{
+	kNone,
+	kTranslateX,
+	kTranslateY,
+	kTranslateZ,
+	kRotation
+};
+TransformationMode transformation_mode = kNone;
+
 // Variables for rotation
-bool isRotation = false;
 double rotateX = 0;
 double rotateY = 0;
 double rotateZ = 0;
 double spin = 0;
 
-// Variables for translation
-enum AxisTranslation
-{
-	kNone /* 이동이 되지 않는 상태*/,
-	kXAxis /* X축으로 이동을 하는 상태*/,
-	kYAxis /* Y축으로 이동을 하는 상태*/,
-	kZAxis /* Z축으로 이동ㅇ르 하는 상태*/
-};
+// Variables for model translation
+double originModelX = 0;
+double originModelY = 0;
+double originModelZ = 0;
+double deltaModelX = 0;
+double deltaModelY = 0;
+double deltaModelZ = 0;
 
-AxisTranslation axis = kNone;
-double deltaX = 0;
-double deltaY = 0;
-double deltaZ = 0;
+// Variables for camera translation
+double originCameraX = 0;
+double originCameraY = 0;
+double originCameraZ = 0;
+double deltaCameraX = 0;
+double deltaCameraY = 0;
+double deltaCameraZ = 0;
 
 // Variables for view, model changing
 enum TransformationSpace
@@ -230,14 +242,17 @@ void drawCow()
 		glPopMatrix();						// Pop the matrix on stack to GL.
 	}
 
+	glMultMatrixd(cam2wld[cameraIndex].matrix());
+	glTranslated(deltaCameraX, deltaCameraY, deltaCameraZ); // To move the cow model.
+	glMultMatrixd(wld2cam[cameraIndex].matrix());
+
 	glPushMatrix();		// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
 
-	glMultMatrixd(cam2wld[cameraIndex].matrix());
-	glTranslated(deltaX, deltaY, deltaZ); // To move the cow model.
 	// The information about location of cow to be drawn is stored in cow2wld matrix.
 	// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixd(cow2wld.matrix());
 
+	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
@@ -253,6 +268,12 @@ void drawCow()
 		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
 		munge(32, r,g,b );									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
 		glColor3d(r, g, b);									
+	}
+	
+	if (transformation_mode == kRotation && space == kModel)
+	{
+		drawAxisOfRotation(5);
+		glRotated(spin, rotateX, rotateY, rotateZ);
 	}
 
 	glCallList(cowID);		// Draw cow. 
@@ -502,6 +523,17 @@ void onMouseButton(int button, int state, int x, int y)
 			oldX = x;
 			oldY = y;
 		}
+		else if (state == GLUT_UP)
+		{
+			printf("Store current translate variables\n");
+			originCameraX = deltaCameraX;
+			originCameraY = deltaCameraY;
+			originCameraZ = deltaCameraZ;
+
+			originModelX = deltaModelX;
+			originModelY = deltaModelY;
+			originModelZ = deltaModelZ;
+		}
 	}
 	else if (button == GLUT_RIGHT_BUTTON)
 	{
@@ -522,23 +554,57 @@ void onMouseDrag(int x, int y)
 {
 	y = height - y - 1;
 
-	switch(axis)
+	switch(transformation_mode)
 	{
-		case kXAxis:
-		case kYAxis:
+		case kTranslateX:
 		{
-			deltaX = (x - oldX) / 10.0;
-			deltaY = (y - oldY) / 10.0;
+			if (space == kView)
+			{
+				deltaCameraX = (x - oldX) / 10.0 + originCameraX;
+				deltaCameraY = (y - oldY) / 10.0 + originCameraY;
+				printf("X : %f %f\n", deltaCameraX, deltaCameraY);
+			}
+			else if (space == kModel)
+			{
+				deltaModelX = (x - oldX) / 10.0 + originModelX;
+			}
+
 			break;
 		}
-		case kZAxis:
+		case kTranslateY:
 		{
-			deltaZ = (x - oldX) / 10.0;
+			if (space == kView)
+			{
+				deltaCameraX = (x - oldX) / 10.0 + originCameraX;
+				deltaCameraY = (y - oldY) / 10.0 + originCameraY;
+				printf("Y : %f %f\n", deltaCameraX, deltaCameraY);
+			}
+			else if (space == kModel)
+			{
+				deltaModelY = (x - oldX) / 10.0 + originModelY;
+			}
+
+			break;
+		}
+		case kTranslateZ:
+		{
+			if (space == kView)
+			{
+				deltaCameraZ = (x - oldX) / 10.0 + originCameraZ;
+			}
+			else if (space == kModel)
+			{
+				deltaCameraZ = (x - oldX) / 10.0 + originModelZ;
+			}
+			break;
+		}
+		case kNone:
+		{
 			break;
 		}
 		default:
 		{
-			printf("Axis is not selected");	
+			printf("Axis is not selected\n");	
 			break;
 		}
 	}
@@ -554,8 +620,6 @@ void onMouseDrag(int x, int y)
 **********************************************************************************/
 void onKeyPress( unsigned char key, int x, int y)
 {
-	axis = kNone;
-
 	// If 'c' or space bar are pressed, alter the camera.
 	// If a number is pressed, alter the camera corresponding the number.
 	if ((key == ' ') || (key == 'c'))
@@ -571,51 +635,59 @@ void onKeyPress( unsigned char key, int x, int y)
 	// If isRotation is true, it makes randomly axis of rotation.
 	else if ((key == 'r') || (key == 'R'))
 	{
-		isRotation = !isRotation;
-
-		if (isRotation)
+		if (transformation_mode == kRotation)
 		{
-			srand(time(NULL));
-  
-  		rotateX = (rand() % 1000) / 1000.0;
-  		rotateY = (rand() % 1000) / 1000.0;
-  		rotateZ = (rand() % 1000) / 1000.0;
-  		
-  		printf( "double value %f %f %f\n", rotateX, rotateY, rotateZ );
-  		
-			glutIdleFunc(rotationDisplay);
+			transformation_mode = kNone;
+			glutIdleFunc(NULL);
+			return;
 		}
 		else
 		{
-			glutIdleFunc(NULL);
-			return;
+			if (space == kModel)
+			{
+  			srand(time(NULL));
+    
+    		rotateX = (rand() % 1000) / 1000.0;
+    		rotateY = (rand() % 1000) / 1000.0;
+    		rotateZ = (rand() % 1000) / 1000.0;
+    		
+    		printf( "double value %f %f %f\n", rotateX, rotateY, rotateZ );
+    		
+  			glutIdleFunc(rotationDisplay);
+			}
+			else if (space == kView)
+			{
+
+			}
 		}
 	}
 	else if ((key == 'm') || (key == 'M'))
 	{
 		space = kModel;
+		return;
 	}
 	else if ((key == 'v') || (key == 'V'))
 	{
 		space = kView;
+		return;
 	}
 	// If 'x' or 'y' or 'z' are pressed, it changes axis of translation.
 	// If 'x' is pressed, it makes x axis become axis of translation
 	else if ((key == 'x') || (key == 'X'))
 	{
-		axis = kXAxis;
+		transformation_mode = kTranslateX;
 		return;
 	}
 	// If 'y' is pressed, it makes y axis become axis of translation
 	else if ((key == 'y') || (key == 'Y'))
 	{
-		axis = kYAxis;
+		transformation_mode = kTranslateY;
 		return;
 	}
 	// If 'z' is pressed, it makes z axis become axis of translation
 	else if ((key == 'z') || (key == 'Z'))
 	{
-		axis = kZAxis;
+		transformation_mode = kTranslateZ;
 		return;
 	}
 
