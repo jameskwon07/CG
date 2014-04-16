@@ -280,12 +280,10 @@ void drawCow()
 		}
 		else if (space == kView)
 		{
-			glTranslated(cameras[cameraIndex][0],cameras[cameraIndex][1],cameras[cameraIndex][2]);
 			glMultMatrixd(wld2cam[cameraIndex].matrix());
-			drawAxisOfRotation(5);
-		 	glRotated(spin, rotateX, rotateY, rotateZ);
-//			glTranslated(-cameras[cameraIndex][0],-cameras[cameraIndex][1],-cameras[cameraIndex][2]);
 			glMultMatrixd(cam2wld[cameraIndex].matrix());
+			drawAxisOfRotation(5);
+		 	glRotated(spin, rotateX+cameras[cameraIndex][0], rotateY+rotateX+cameras[cameraIndex][1], rotateZ+cameras[cameraIndex][2]);
 		}
 	}
 
