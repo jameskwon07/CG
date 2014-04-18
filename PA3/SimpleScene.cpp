@@ -18,6 +18,9 @@
 
 #include "FrameXform.h"
 #include "WaveFrontOBJ.h"
+#include "Vector.h"
+#include "Point.h"
+
 #ifndef M_PI
 
 #define M_PI 3.1415926535897932384626433832795
@@ -70,6 +73,7 @@ double rotateX = 0;
 double rotateY = 0;
 double rotateZ = 0;
 double spin = 0;
+double origin_spin = 0;
 
 // Variables for model translation
 double originModelX = 0;
@@ -78,6 +82,10 @@ double originModelZ = 0;
 double deltaModelX = 0;
 double deltaModelY = 0;
 double deltaModelZ = 0;
+Vector* look_vector;
+Vector* up_vector;
+Vector* right_vector;
+
 
 // Variables for camera translation
 double originCameraX = 0;
@@ -87,6 +95,7 @@ double deltaCameraX = 0;
 double deltaCameraY = 0;
 double deltaCameraZ = 0;
 
+
 // Variables for view, model changing
 enum TransformationSpace
 {
@@ -94,6 +103,7 @@ enum TransformationSpace
 	kView
 };
 TransformationSpace space = kModel;
+
 
 void drawFrame(float len);
 
@@ -181,14 +191,82 @@ void rotationDisplay()
 
 	glutPostRedisplay();
 }
+void calculateRightAndUpVector()
+{
+	Point* center = new Point(cameras[cameraIndex][3], cameras[cameraIndex][4], cameras[cameraIndex][5]);
+	Point* eye = new Point(cameras[cameraIndex][0], cameras[cameraIndex][1], cameras[cameraIndex][2]);
+
+	look_vector->calculate_two_points(*eye, *center);
+
+	look_vector->normalize();
+//	look_vector->print("Look");
+
+	Vector* up_center_vector = new Vector(cameras[cameraIndex][6], cameras[cameraIndex][7], cameras[cameraIndex][8]);
+
+	right_vector = new Vector();
+	Vector::cross(*look_vector, *up_center_vector, right_vector);
+	
+	right_vector->normalize();
+//	right_vector->print("Right");
+
+	up_vector = new Vector();
+	Vector::cross(*right_vector, *look_vector, up_vector);
+	up_vector->normalize();
+//	up_vector->print("Up");
+
+	delete center;
+	delete eye;
+	delete up_center_vector;
+}
+void calculateRightMovePosition(double delta)
+{
+	deltaCameraX = delta / 10.0 * right_vector->i;
+	deltaCameraY = delta / 10.0 * right_vector->j;
+	deltaCameraZ = delta / 10.0 * right_vector->k;
+}
+void calculateUpMovePosition(double delta)
+{
+	deltaCameraX = delta / 10.0 * up_vector->i + deltaCameraX;
+	deltaCameraY = delta / 10.0 * up_vector->j + deltaCameraY;
+	deltaCameraZ = delta / 10.0 * up_vector->k + deltaCameraZ;
+}
+void calculateRotateAxis()
+{
+	if (space == kModel)
+	{
+ 		srand(time(NULL));
+  
+ 		rotateX = (rand() % 1000) / 1000.0;
+ 		rotateY = (rand() % 1000) / 1000.0;
+ 		rotateZ = (rand() % 1000) / 1000.0;
+    		
+ 		glutIdleFunc(rotationDisplay);
+	}
+	else if (space == kView)
+	{
+		if (cameras[cameraIndex][2] != 0)
+		{
+			rotateX = cameras[cameraIndex][0] / cameras[cameraIndex][2];
+			rotateY = 0;
+			rotateZ = cameras[cameraIndex][2] / cameras[cameraIndex][2];
+		}	
+		else
+		{
+			rotateX = 1.0;
+			rotateY = 0;
+			rotateZ = 0;
+		}
+	}
+}
 
 void drawAxisOfRotation(float length)
 {
-	printf("%f %f %f\n",rotateX, rotateY, rotateZ);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	glColor3d(1,1,1);
+	glVertex3d(0,0,0);			
 	glVertex3d(length*rotateX,length*rotateY,length*rotateZ);			
+	glVertex3d(0,0,0);			
 	glVertex3d(-length*rotateX,-length*rotateY,-length*rotateZ);			
 	glEnd();
 
@@ -235,8 +313,8 @@ void drawCow()
 		glEndList();						// Terminate compiling the display list. Now, you can draw cow using 'cowID'.
 		glPushMatrix();						// Push the current matrix of GL into stack.
 		glLoadIdentity();					// Set the GL matrix Identity matrix.
-//		glTranslated(0,-cow->bbmin.y,-8);	// Set the location of cow.
-//		glRotated(-90, 0, 1, 0);			// Set the direction of cow. These information are stored in the matrix of GL.
+		glTranslated(0,-cow->bbmin.y,-8);	// Set the location of cow.
+		glRotated(-90, 0, 1, 0);			// Set the direction of cow. These information are stored in the matrix of GL.
 		glGetDoublev(GL_MODELVIEW_MATRIX, cow2wld.matrix());	// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 		glPopMatrix();						// Pop the matrix on stack to GL.
 	}
@@ -246,13 +324,12 @@ void drawCow()
 // The information about location of cow to be drawn is stored in cow2wld matrix.
 // (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 
+	calculateRightAndUpVector();
+
+	glTranslated(deltaCameraX, deltaCameraY, deltaCameraZ); // To move the cow model.
+
 	glMultMatrixd(cow2wld.matrix());
-
-
-	glMultMatrixd(wld2cam[cameraIndex].matrix());
-	glTranslated(-deltaCameraX, deltaCameraY, -deltaCameraZ); // To move the cow model.
-	glMultMatrixd(cam2wld[cameraIndex].matrix());
-
+	
 	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
@@ -271,21 +348,8 @@ void drawCow()
 		glColor3d(r, g, b);									
 	}
 	
-	if (transformation_mode == kRotation)
-	{
-		if (space == kModel)
-		{
-			drawAxisOfRotation(5);
-			glRotated(spin, rotateX, rotateY, rotateZ);
-		}
-		else if (space == kView)
-		{
-			glMultMatrixd(wld2cam[cameraIndex].matrix());
-			glMultMatrixd(cam2wld[cameraIndex].matrix());
-			drawAxisOfRotation(5);
-		 	glRotated(spin, rotateX+cameras[cameraIndex][0], rotateY+rotateX+cameras[cameraIndex][1], rotateZ+cameras[cameraIndex][2]);
-		}
-	}
+	drawAxisOfRotation(5);
+	glRotated(spin, rotateX, rotateY, rotateZ);
 
 	glCallList(cowID);		// Draw cow. 
 	glPopMatrix();			// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
@@ -502,6 +566,11 @@ void initialize()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightDirection);
 	glEnable(GL_LIGHT0);
+
+	// Vector initalize
+	look_vector = new Vector();
+	right_vector = new Vector();
+	up_vector = new Vector();
 }
 
 /*********************************************************************************
@@ -544,6 +613,8 @@ void onMouseButton(int button, int state, int x, int y)
 			originModelX = deltaModelX;
 			originModelY = deltaModelY;
 			originModelZ = deltaModelZ;
+
+			origin_spin = spin;
 		}
 	}
 	else if (button == GLUT_RIGHT_BUTTON)
@@ -571,8 +642,12 @@ void onMouseDrag(int x, int y)
 		{
 			if (space == kView)
 			{
-				deltaCameraX = (x - oldX) / 10.0 + originCameraX;
-				deltaCameraY = (y - oldY) / 10.0 + originCameraY;
+				calculateRightMovePosition(x - oldX);	
+				calculateUpMovePosition(y - oldY);
+
+				deltaCameraX += originCameraX;
+				deltaCameraY += originCameraY;
+				deltaCameraZ += originCameraZ;
 			}
 			else if (space == kModel)
 			{
@@ -585,8 +660,8 @@ void onMouseDrag(int x, int y)
 		{
 			if (space == kView)
 			{
-				deltaCameraX = (x - oldX) / 10.0 + originCameraX;
-				deltaCameraY = (y - oldY) / 10.0 + originCameraY;
+				calculateRightMovePosition(x - oldX);	
+				calculateUpMovePosition(y - oldY);
 			}
 			else if (space == kModel)
 			{
@@ -599,7 +674,6 @@ void onMouseDrag(int x, int y)
 		{
 			if (space == kView)
 			{
-				deltaCameraZ = (x - oldX) / 10.0 + originCameraZ;
 			}
 			else if (space == kModel)
 			{
@@ -610,7 +684,7 @@ void onMouseDrag(int x, int y)
 		case kRotation:
 		{
 			if (space == kView)
-				spin = (x - oldX) / 10.0;
+				spin = (x - oldX) + origin_spin;
 			break;
 		}
 		case kNone:
@@ -654,27 +728,12 @@ void onKeyPress( unsigned char key, int x, int y)
 		{
 			transformation_mode = kNone;
 			glutIdleFunc(NULL);
-			return;
+			origin_spin = 0;
 		}
 		else
 		{
 			transformation_mode = kRotation;
-			if (space == kModel)
-			{
-  			srand(time(NULL));
-    
-    		rotateX = (rand() % 1000) / 1000.0;
-    		rotateY = (rand() % 1000) / 1000.0;
-    		rotateZ = (rand() % 1000) / 1000.0;
-    		
-  			glutIdleFunc(rotationDisplay);
-			}
-			else if (space == kView)
-			{
-				rotateX = 1.0;
-				rotateY = 0;
-				rotateZ = 0;
-			}
+			calculateRotateAxis();
 		}
 	}
 	else if ((key == 'm') || (key == 'M'))
@@ -710,6 +769,11 @@ void onKeyPress( unsigned char key, int x, int y)
 
 	if (cameraIndex >= (int)wld2cam.size() )
 		cameraIndex = 0;
+
+	if (transformation_mode == kRotation)
+	{
+		calculateRotateAxis();
+	}
 	
 	glutPostRedisplay();
 }
