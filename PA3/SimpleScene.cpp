@@ -230,6 +230,12 @@ void calculateUpMovePosition(double delta)
 	deltaCameraY = delta / 10.0 * up_vector->j + deltaCameraY;
 	deltaCameraZ = delta / 10.0 * up_vector->k + deltaCameraZ;
 }
+void calculateLookMovePosition(double delta)
+{
+	deltaCameraX = delta / 10.0 * look_vector->i;
+	deltaCameraY = delta / 10.0 * look_vector->j;
+	deltaCameraZ = delta / 10.0 * look_vector->k;
+}
 void calculateRotateAxis()
 {
 	if (space == kModel)
@@ -329,7 +335,6 @@ void drawCow()
 	glTranslated(deltaCameraX, deltaCameraY, deltaCameraZ); // To move the cow model.
 
 	glMultMatrixd(cow2wld.matrix());
-	
 	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
@@ -651,7 +656,7 @@ void onMouseDrag(int x, int y)
 			}
 			else if (space == kModel)
 			{
-				deltaModelX = (x - oldX) / 10.0 + originModelX;
+				deltaModelX = -(x - oldX) / 10.0 + originModelX;
 			}
 
 			break;
@@ -662,10 +667,14 @@ void onMouseDrag(int x, int y)
 			{
 				calculateRightMovePosition(x - oldX);	
 				calculateUpMovePosition(y - oldY);
+
+				deltaCameraX += originCameraX;
+				deltaCameraY += originCameraY;
+				deltaCameraZ += originCameraZ;
 			}
 			else if (space == kModel)
 			{
-				deltaModelY = (x - oldX) / 10.0 + originModelY;
+				deltaModelY = -(x - oldX) / 10.0 + originModelY;
 			}
 
 			break;
@@ -674,17 +683,24 @@ void onMouseDrag(int x, int y)
 		{
 			if (space == kView)
 			{
+				calculateLookMovePosition(x - oldX);
+
+				deltaCameraX += originCameraX;
+				deltaCameraY += originCameraY;
+				deltaCameraZ += originCameraZ;
 			}
 			else if (space == kModel)
 			{
-				deltaCameraZ = (x - oldX) / 10.0 + originModelZ;
+				deltaModelZ = -(x - oldX) / 10.0 + originModelZ;
 			}
 			break;
 		}
 		case kRotation:
 		{
 			if (space == kView)
-				spin = (x - oldX) + origin_spin;
+				spin = (x - oldX);
+
+			spin += origin_spin;
 			break;
 		}
 		case kNone:
@@ -728,7 +744,6 @@ void onKeyPress( unsigned char key, int x, int y)
 		{
 			transformation_mode = kNone;
 			glutIdleFunc(NULL);
-			origin_spin = 0;
 		}
 		else
 		{
