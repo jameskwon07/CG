@@ -541,10 +541,7 @@ void display()
 	glFlush();
 
 	// If it is not backbuffer mode, swap the screen. In backbuffer mode, this is not necessary because it is not presented on screen.
-	if (selectMode == 0)
-	{
-		glutSwapBuffers();
-	}
+	glutSwapBuffers();
 
 	frame += 1;					
 }
