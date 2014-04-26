@@ -64,9 +64,10 @@ enum TransformationMode
 	kTranslateX,
 	kTranslateY,
 	kTranslateZ,
-	kRotation
+	kRotation,
+	kSelection
 };
-TransformationMode transformation_mode = kNone;
+TransformationMode mode = kNone;
 
 // Variables for rotation
 double rotateX = 0;
@@ -341,6 +342,9 @@ void drawCow()
 
 	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
 
+	drawAxisOfRotation(5);
+	glRotated(spin, rotateX, rotateY, rotateZ); // Rotate
+
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawFrame(5);										// Draw x, y, and z axis.
@@ -357,8 +361,6 @@ void drawCow()
 		glColor3d(r, g, b);									
 	}
 	
-	drawAxisOfRotation(5);
-	glRotated(spin, rotateX, rotateY, rotateZ); // Rotate
 
 	glCallList(cowID);		// Draw cow. 
 	glPopMatrix();			// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
@@ -479,15 +481,6 @@ void drawFloor()
 		// Assign checker-patterned texture.
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, floorTexID );
-	}
-	else
-	{
-		// Assign color on backbuffer mode.
-		double r,g,b;
-		munge(35, r,g,b);
-		glColor3d(r, g, b);
-	}
-
 	// Draw the floor. Match the texture's coordinates and the floor's coordinates resp. 
 	glBegin(GL_POLYGON);
 	glTexCoord2d(0,0);
@@ -499,6 +492,22 @@ void drawFloor()
 	glTexCoord2d(0,1);
 	glVertex3d(-12,-0.1, 12);		// Texture's (0,1) is bound to (-12,-0.1,12).
 	glEnd();
+	}
+	else
+	{
+		// Assign color on backbuffer mode.
+		double r,g,b;
+		munge(35, r,g,b);
+		glColor3d(r, g, b);
+	// Draw the floor. Match the texture's coordinates and the floor's coordinates resp. 
+	glBegin(GL_POLYGON);
+	glVertex3d(-12,-0.1,-12);		// Texture's (0,0) is bound to (-12,-0.1,-12).
+	glVertex3d( 12,-0.1,-12);		// Texture's (1,0) is bound to (12,-0.1,-12).
+	glVertex3d( 12,-0.1, 12);		// Texture's (1,1) is bound to (12,-0.1,12).
+	glVertex3d(-12,-0.1, 12);		// Texture's (0,1) is bound to (-12,-0.1,12).
+	glEnd();
+	}
+
 
 	if (selectMode == 0)
 	{
@@ -533,7 +542,10 @@ void display()
 
 	// If it is not backbuffer mode, swap the screen. In backbuffer mode, this is not necessary because it is not presented on screen.
 	if (selectMode == 0)
+	{
 		glutSwapBuffers();
+	}
+
 	frame += 1;					
 }
 
@@ -646,7 +658,7 @@ void onMouseDrag(int x, int y)
 {
 	y = height - y - 1;
 
-	switch(transformation_mode)
+	switch(mode)
 	{
 		case kTranslateX:
 		{
@@ -741,18 +753,25 @@ void onKeyPress( unsigned char key, int x, int y)
 	{
 		cameraIndex = key - '0';
 	}
+	else if ((key == 'b') || (key == 'B'))
+	{
+		if (selectMode == 0)
+			selectMode = 1;
+		else
+			selectMode = 0;
+	}
 	// If 'r' or 'R' are pressed, toggle isRotation variable.
 	// If isRotation is true, it makes randomly axis of rotation.
 	else if ((key == 'r') || (key == 'R'))
 	{
-		if (transformation_mode == kRotation)
+		if (mode == kRotation)
 		{
-			transformation_mode = kNone;
+			mode = kNone;
 			glutIdleFunc(NULL);
 		}
 		else
 		{
-			transformation_mode = kRotation;
+			mode = kRotation;
 			calculateRotateAxis();
 		}
 	}
@@ -760,6 +779,13 @@ void onKeyPress( unsigned char key, int x, int y)
 	{
 		space = kModel;
 		return;
+	}
+	else if ((key == 's') || (key == 'S'))
+	{
+		if (mode == kSelection)
+			mode = kNone;
+		else
+			mode = kSelection;
 	}
 	else if ((key == 'v') || (key == 'V'))
 	{
@@ -770,19 +796,19 @@ void onKeyPress( unsigned char key, int x, int y)
 	// If 'x' is pressed, it makes x axis become axis of translation
 	else if ((key == 'x') || (key == 'X'))
 	{
-		transformation_mode = kTranslateX;
+		mode = kTranslateX;
 		return;
 	}
 	// If 'y' is pressed, it makes y axis become axis of translation
 	else if ((key == 'y') || (key == 'Y'))
 	{
-		transformation_mode = kTranslateY;
+		mode = kTranslateY;
 		return;
 	}
 	// If 'z' is pressed, it makes z axis become axis of translation
 	else if ((key == 'z') || (key == 'Z'))
 	{
-		transformation_mode = kTranslateZ;
+		mode = kTranslateZ;
 		return;
 	}
 
@@ -790,11 +816,6 @@ void onKeyPress( unsigned char key, int x, int y)
 	if (cameraIndex >= (int)wld2cam.size() )
 		cameraIndex = 0;
 
-	if (transformation_mode == kRotation)
-	{
-		calculateRotateAxis();
-	}
-	
 	glutPostRedisplay();
 }
 
