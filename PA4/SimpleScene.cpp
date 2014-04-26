@@ -526,7 +526,7 @@ void display()
 
 	drawFloor();													// Draw floor.
 	drawCow();														// Draw cow.
-	//drawBet();
+	drawBet();
 
 
 	glFlush();
