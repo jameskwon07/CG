@@ -191,7 +191,8 @@ void rotationDisplay()
 
 	glutPostRedisplay();
 }
-void calculateRightAndUpVector()
+// For calculating look, right, up vector
+void calculateLookAndRightAndUpVector()
 {
 	Point* center = new Point(cameras[cameraIndex][3], cameras[cameraIndex][4], cameras[cameraIndex][5]);
 	Point* eye = new Point(cameras[cameraIndex][0], cameras[cameraIndex][1], cameras[cameraIndex][2]);
@@ -218,24 +219,28 @@ void calculateRightAndUpVector()
 	delete eye;
 	delete up_center_vector;
 }
+// For moving right vector direction
 void calculateRightMovePosition(double delta)
 {
 	deltaCameraX = delta / 10.0 * right_vector->i;
 	deltaCameraY = delta / 10.0 * right_vector->j;
 	deltaCameraZ = delta / 10.0 * right_vector->k;
 }
+// For moving up vector direction
 void calculateUpMovePosition(double delta)
 {
 	deltaCameraX = delta / 10.0 * up_vector->i + deltaCameraX;
 	deltaCameraY = delta / 10.0 * up_vector->j + deltaCameraY;
 	deltaCameraZ = delta / 10.0 * up_vector->k + deltaCameraZ;
 }
+// For moving look vector direction
 void calculateLookMovePosition(double delta)
 {
 	deltaCameraX = delta / 10.0 * look_vector->i;
 	deltaCameraY = delta / 10.0 * look_vector->j;
 	deltaCameraZ = delta / 10.0 * look_vector->k;
 }
+// For calculating rotation axis
 void calculateRotateAxis()
 {
 	if (space == kModel)
@@ -264,7 +269,7 @@ void calculateRotateAxis()
 		}
 	}
 }
-
+// Showing axis of rotation
 void drawAxisOfRotation(float length)
 {
 	glDisable(GL_LIGHTING);
@@ -327,14 +332,13 @@ void drawCow()
 
 	glPushMatrix();		// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
 
-// The information about location of cow to be drawn is stored in cow2wld matrix.
-// (Project2 hint) If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 
-	calculateRightAndUpVector();
+	calculateLookAndRightAndUpVector(); // Calculating look, right, up vector
 
 	glTranslated(deltaCameraX, deltaCameraY, deltaCameraZ); // To move the cow model.
 
-	glMultMatrixd(cow2wld.matrix());
+	glMultMatrixd(cow2wld.matrix()); // Multiplying cow2wld matrix
+
 	glTranslated(deltaModelX, deltaModelY, deltaModelZ); // To move the cow model.
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
@@ -354,7 +358,7 @@ void drawCow()
 	}
 	
 	drawAxisOfRotation(5);
-	glRotated(spin, rotateX, rotateY, rotateZ);
+	glRotated(spin, rotateX, rotateY, rotateZ); // Rotate
 
 	glCallList(cowID);		// Draw cow. 
 	glPopMatrix();			// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
@@ -610,6 +614,7 @@ void onMouseButton(int button, int state, int x, int y)
 		}
 		else if (state == GLUT_UP)
 		{
+			// Store original value
 			printf("Store current translate variables\n");
 			originCameraX = deltaCameraX;
 			originCameraY = deltaCameraY;
